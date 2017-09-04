@@ -49,7 +49,7 @@ data {
 parameters { 
    real l; 
    real b; 
-   real<lower = 0,upper =3>  lsig_sq;
+   real<lower = 0,upper =4>  lsig_sq;
    real l_reff[N_GROUPS]; 
 } 
 

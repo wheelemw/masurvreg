@@ -1921,7 +1921,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0,3,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -1990,9 +1990,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lub_constrain(0,3,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
         else
-            lsig_sq = in__.scalar_lub_constrain(0,3);
+            lsig_sq = in__.scalar_lub_constrain(0,4);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -2103,7 +2103,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lub_constrain(0,3);
+        double lsig_sq = in__.scalar_lub_constrain(0,4);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {
@@ -2985,7 +2985,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_logistic");
-    reader.add_event(74, 74, "end", "model_logistic");
+    reader.add_event(73, 73, "end", "model_logistic");
     return reader;
 }
 
@@ -3377,7 +3377,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lb_unconstrain(0,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -3446,9 +3446,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lb_constrain(0,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
         else
-            lsig_sq = in__.scalar_lb_constrain(0);
+            lsig_sq = in__.scalar_lub_constrain(0,4);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -3559,7 +3559,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lb_constrain(0);
+        double lsig_sq = in__.scalar_lub_constrain(0,4);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {
@@ -4105,7 +4105,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lb_unconstrain(0,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -4174,9 +4174,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lb_constrain(0,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
         else
-            lsig_sq = in__.scalar_lb_constrain(0);
+            lsig_sq = in__.scalar_lub_constrain(0,4);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -4287,7 +4287,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lb_constrain(0);
+        double lsig_sq = in__.scalar_lub_constrain(0,4);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {
@@ -4833,7 +4833,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lb_unconstrain(0,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -4902,9 +4902,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lb_constrain(0,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
         else
-            lsig_sq = in__.scalar_lb_constrain(0);
+            lsig_sq = in__.scalar_lub_constrain(0,4);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -5015,7 +5015,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lb_constrain(0);
+        double lsig_sq = in__.scalar_lub_constrain(0,4);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {

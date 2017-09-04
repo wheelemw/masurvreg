@@ -2,12 +2,12 @@
 # Fit the Weibul Model
 #
 ####################################################
-weib_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 1000,
+weib_model_fit <- function(data_surv,mcmc_iter = 30000, mcmc_warmup = 1000,
                            seed=8675309, adapt_delta = 0.9)
 {
 
     fitr =    sampling(stanmodels$wei,data=data_surv,
-                         iter=mcmc_iter,warmup=mcmc_warmup,seed=seed,chains=4,
+                         iter=mcmc_iter,warmup=mcmc_warmup,seed=seed,chains=1,
                          control=list(adapt_delta = adapt_delta))
     expose_stan_functions(stanmodels$wei)
     ################################################################
@@ -31,7 +31,7 @@ weib_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 1000,
         target = target +  log_weib_interval_censor(as.numeric(data_surv$t[i,1]),as.numeric(data_surv$t[i,2]),as.numeric(l+l_reff[ID[i]]), as.numeric(b) );
     }
     
-    target = target + dnorm(l, log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE)
+    target = target + dnorm(l, log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE) - pgamma(4,1,1,log.p = T)
     
     for (i in 1:length(l_reff)){
       target = target + dnorm(l_reff[i],0,lsig_sq)
@@ -55,7 +55,7 @@ lognorm_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 1000,
                               seed=8675309, adapt_delta = 0.9)
 {
   
-  fitr =    sampling(stanmodels$lognormal,data=data_surv,
+  fitr =    sampling(stanmodels$lognormal,data=data_surv,chains=1,
                      iter=mcmc_iter,warmup=mcmc_warmup,seed=seed,
                      control=list(adapt_delta = adapt_delta))
   expose_stan_functions(stanmodels$lognormal)
@@ -80,7 +80,7 @@ lognorm_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 1000,
       target = target +  log_lnorm_interval_censor(as.numeric(data_surv$t[i,1]),as.numeric(data_surv$t[i,2]),as.numeric(l+l_reff[ID[i]]), as.numeric(b) );
   }
   
-  target = target + dnorm(l, log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE) 
+  target = target + dnorm(l, log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE)  -pgamma(4,1,1,log.p = T)
   
   for (i in 1:length(l_reff)){
     target = target + dnorm(l_reff[i],0,lsig_sq)
@@ -154,7 +154,7 @@ logGumbel_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 1000,
                                 seed=8675309, adapt_delta = 0.9)
 {
   
-  fitr =    sampling(stanmodels$loggumbel,data=data_surv,
+  fitr =    sampling(stanmodels$loggumbel,data=data_surv, chains = 1, 
                      iter=mcmc_iter,warmup=mcmc_warmup,seed=seed,
                      control=list(adapt_delta = adapt_delta))
   expose_stan_functions(stanmodels$loggumbel)
@@ -337,7 +337,7 @@ logLogistic_model_fit <- function(data_surv,mcmc_iter = 10000, mcmc_warmup = 100
   }
   
   
-  target = target + dnorm(l,log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE) 
+  target = target + dnorm(l,log=TRUE) + dnorm(b,log=TRUE) + dgamma(lsig_sq,1,1,log=TRUE) -pgamma(4,1,1,log.p=T)
   
   for (i in 1:length(l_reff)){
     target = target + dnorm(l_reff[i],0,lsig_sq)
