@@ -291,7 +291,7 @@ logLogistic_model_Analyze <- function(data,frange,alpha = 0.05, sample = 30000,m
 ##################################################################################
 MA_fit <- function(data,alpha = 0.05, sample = 30000,mcmc_warmup=1000,adapt_delta=0.9,seed=8675309){
   
-    frange = c(0,max(data_surv$t))
+    frange = c(0,max(data$t))
     
     fit.llogit   <- logLogistic_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
