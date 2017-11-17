@@ -50,14 +50,14 @@ data {
 parameters { 
    real l; 
    real b; 
-   real <lower=0, upper=4> lsig_sq;
+   real <lower=0, upper=2> lsig_sq;
   // real<lower = 0>  lsig_sq;	
    real l_reff[N_GROUPS]; 
 } 
 
 model { 
      l ~ normal(0,1); 
-     b ~ normal(0,1);
+     b ~ normal(0,0.5);
      l_reff ~ normal(0,sqrt(lsig_sq));
      lsig_sq ~ gamma(1,1);
       
@@ -74,3 +74,18 @@ model {
 
      } 
 } 
+
+generated quantities{
+  vector[N] log_lik;
+  for (i in 1:N){
+         if (CENC[i] == 0) 
+               log_lik[i] =   log_weib_right_censor(t[i,1],l+l_reff[ID[i]], b); 
+         if (CENC[i] == 1) 
+               log_lik[i] =   log_weib_exact_lifetime(t[i,1],l+l_reff[ID[i]], b); 
+         if (CENC[i] == 2) 
+               log_lik[i] =   log_weib_left_censor(t[i,1],l+l_reff[ID[i]], b); 
+         if (CENC[i] == 3) 
+               log_lik[i] =  log_weib_interval_censor(t[i,1],t[i,2],l+l_reff[ID[i]], b);
+    
+  }
+}

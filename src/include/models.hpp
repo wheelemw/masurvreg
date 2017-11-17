@@ -27,7 +27,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_expmodn");
-    reader.add_event(78, 78, "end", "model_expmodn");
+    reader.add_event(94, 94, "end", "model_expmodn");
     return reader;
 }
 
@@ -605,6 +605,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -621,6 +622,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -678,9 +682,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_expmn_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),nu,(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_expmn_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),nu,(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_expmn_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),nu,(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_expmn_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),nu,(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -690,6 +715,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -740,6 +769,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -768,6 +802,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -801,7 +840,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_inv_gaussian");
-    reader.add_event(75, 75, "end", "model_inv_gaussian");
+    reader.add_event(91, 91, "end", "model_inv_gaussian");
     return reader;
 }
 
@@ -1193,7 +1232,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,2,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -1262,9 +1301,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,2,lp__);
         else
-            lsig_sq = in__.scalar_lub_constrain(0,4);
+            lsig_sq = in__.scalar_lub_constrain(0,2);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -1343,6 +1382,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -1357,6 +1397,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -1375,7 +1418,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lub_constrain(0,4);
+        double lsig_sq = in__.scalar_lub_constrain(0,2);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {
@@ -1412,9 +1455,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_igauss_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_igauss_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_igauss_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_igauss_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1424,6 +1488,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -1471,6 +1539,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -1496,6 +1569,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -1529,7 +1607,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_logdexp");
-    reader.add_event(74, 74, "end", "model_logdexp");
+    reader.add_event(90, 90, "end", "model_logdexp");
     return reader;
 }
 
@@ -2071,6 +2149,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -2085,6 +2164,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -2140,9 +2222,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_ldexp_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_ldexp_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_ldexp_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_ldexp_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2152,6 +2255,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -2199,6 +2306,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -2224,6 +2336,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -2257,7 +2374,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_loggumbel");
-    reader.add_event(76, 76, "end", "model_loggumbel");
+    reader.add_event(92, 92, "end", "model_loggumbel");
     return reader;
 }
 
@@ -2799,6 +2916,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -2813,6 +2931,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -2868,9 +2989,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lgum_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lgum_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lgum_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lgum_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2880,6 +3022,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -2927,6 +3073,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -2952,6 +3103,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -2985,7 +3141,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_logistic");
-    reader.add_event(73, 73, "end", "model_logistic");
+    reader.add_event(89, 89, "end", "model_logistic");
     return reader;
 }
 
@@ -3527,6 +3683,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -3541,6 +3698,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -3596,9 +3756,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_logistic_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_logistic_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_logistic_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_logistic_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -3608,6 +3789,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -3655,6 +3840,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -3680,6 +3870,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -3713,7 +3908,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_lognormal");
-    reader.add_event(75, 75, "end", "model_lognormal");
+    reader.add_event(92, 92, "end", "model_lognormal");
     return reader;
 }
 
@@ -4255,6 +4450,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -4269,6 +4465,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -4324,9 +4523,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lnorm_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lnorm_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lnorm_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_lnorm_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -4336,6 +4556,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -4383,6 +4607,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -4408,6 +4637,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -4441,7 +4675,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_weib");
-    reader.add_event(76, 76, "end", "model_weib");
+    reader.add_event(91, 91, "end", "model_weib");
     return reader;
 }
 
@@ -4833,7 +5067,7 @@ public:
         double lsig_sq(0);
         lsig_sq = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0,4,lsig_sq);
+            writer__.scalar_lub_unconstrain(0,2,lsig_sq);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable lsig_sq: ") + e.what());
         }
@@ -4902,9 +5136,9 @@ public:
         T__ lsig_sq;
         (void) lsig_sq;  // dummy to suppress unused var warning
         if (jacobian__)
-            lsig_sq = in__.scalar_lub_constrain(0,4,lp__);
+            lsig_sq = in__.scalar_lub_constrain(0,2,lp__);
         else
-            lsig_sq = in__.scalar_lub_constrain(0,4);
+            lsig_sq = in__.scalar_lub_constrain(0,2);
 
         vector<T__> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
@@ -4936,7 +5170,7 @@ public:
         try {
 
             lp_accum__.add(normal_log<propto__>(l, 0, 1));
-            lp_accum__.add(normal_log<propto__>(b, 0, 1));
+            lp_accum__.add(normal_log<propto__>(b, 0, 0.5));
             lp_accum__.add(normal_log<propto__>(l_reff, 0, sqrt(lsig_sq)));
             lp_accum__.add(gamma_log<propto__>(lsig_sq, 1, 1));
             for (int i = 1; i <= N; ++i) {
@@ -4983,6 +5217,7 @@ public:
         names__.push_back("b");
         names__.push_back("lsig_sq");
         names__.push_back("l_reff");
+        names__.push_back("log_lik");
     }
 
 
@@ -4997,6 +5232,9 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N_GROUPS);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
     }
 
@@ -5015,7 +5253,7 @@ public:
         // read-transform, write parameters
         double l = in__.scalar_constrain();
         double b = in__.scalar_constrain();
-        double lsig_sq = in__.scalar_lub_constrain(0,4);
+        double lsig_sq = in__.scalar_lub_constrain(0,2);
         vector<double> l_reff;
         size_t dim_l_reff_0__ = N_GROUPS;
         for (size_t k_0__ = 0; k_0__ < dim_l_reff_0__; ++k_0__) {
@@ -5052,9 +5290,30 @@ public:
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "N", N);
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            for (int i = 1; i <= N; ++i) {
+
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),0))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_weib_right_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),1))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_weib_exact_lifetime(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),2))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_weib_left_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+                if (as_bool(logical_eq(get_base1(CENC,i,"CENC",1),3))) {
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), log_weib_interval_censor(get_base1(get_base1(t,i,"t",1),1,"t",2),get_base1(get_base1(t,i,"t",1),2,"t",2),(l + get_base1(l_reff,get_base1(ID,i,"ID",1),"l_reff",1)),b, pstream__));
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -5064,6 +5323,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -5111,6 +5374,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -5136,6 +5404,11 @@ public:
         if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model

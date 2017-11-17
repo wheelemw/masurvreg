@@ -289,7 +289,7 @@ logLogistic_model_Analyze <- function(data,frange,alpha = 0.05, sample = 30000,m
 #
 #
 ##################################################################################
-MA_fit <- function(data,alpha = 0.05, sample = 30000,mcmc_warmup=1000,adapt_delta=0.9,seed=8675309){
+MA_fit <- function(data,method="stacking",alpha = 0.05, sample = 30000,mcmc_warmup=2000,adapt_delta=0.9,seed=8675309){
   
     frange = c(0,max(data$t))
     
@@ -297,43 +297,40 @@ MA_fit <- function(data,alpha = 0.05, sample = 30000,mcmc_warmup=1000,adapt_delt
                                             seed = seed)
     fit.lGauss   <- logGaussian_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
-    fit.Weibul   <- weib_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
+    fit.weibul   <- weib_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
     fit.dexp     <- dexp_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
-                                            seed = seed)
-    fit.expmNorm <- expmNorm_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
     fit.lGumbel  <- logGumbel_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
     fit.iGauss   <- invGaussian_model_Analyze(data,frange,alpha=alpha,sample=sample,mcmc_warmup = mcmc_warmup,adapt_delta=adapt_delta,
                                             seed = seed)
+  
     
+    log_lik_list <- list()
+    log_lik_list[[1]] = extract(fit.llogit$fit$modelFit)[["log_lik"]]
+    log_lik_list[[2]] = extract(fit.lGauss$fit$modelFit)[["log_lik"]]
+    log_lik_list[[3]] = extract(fit.weibul$fit$modelFit)[["log_lik"]]
+    log_lik_list[[4]] = extract(fit.dexp$fit$modelFit)[["log_lik"]]
+    log_lik_list[[5]] = extract(fit.lGumbel$fit$modelFit)[["log_lik"]]
+    log_lik_list[[6]] = extract(fit.iGauss$fit$modelFit)[["log_lik"]]
+    
+    model_weights <- model_weights(log_lik_list,method=method,optim_method = "BFGS",BB=TRUE)
+ 
     ##############################################################################
     #
-    #
-    #
     ##############################################################################
-    log_bf <- c(fit.llogit$fit$bayesFactor,fit.lGauss$fit$bayesFactor, fit.Weibul$fit$bayesFactor,
-                fit.dexp$fit$bayesFactor,fit.expmNorm$fit$bayesFactor, fit.lGumbel$fit$bayesFactor,
-                fit.iGauss$fit$bayesFactor)
+    # find the max and adjust for numerical reasons
     ##############################################################################
-    #find the max and adjust for numerical reasons
-    ##############################################################################
-    max.bf <- max(log_bf)
-    posterior.probs <- log_bf-max.bf
-    posterior.probs <- exp(posterior.probs)/sum(exp(posterior.probs))
-    names(posterior.probs) <- c("Log-Logistic","Log-Gaussian","Weibull","Log-DoubleExponential",
-                                "Log-ExpModNormal","Log-Gumbel","Log-invGauss")
+    names(model_weights) <- c("Log-Logistic","Log-Gaussian","Weibull","Log-DoubleExponential",
+                                "Log-Gumbel","Log-invGauss")
     
     ##############################################################################
     #compute the functions for the model average
     ##############################################################################
-    
-    
-    
-    return( MA = list(fit.llogit=fit.llogit,fit.lGauss = fit.lGauss,fit.Weibul=fit.Weibul,
-                      fit.dexp = fit.dexp, fit.expmNorm = fit.expmNorm, fit.lGumbel = fit.lGumbel,
-                      fit.iGauss = fit.iGauss, posterior.probs = posterior.probs) )
+    return( MA = list(fit.llogit=fit.llogit,fit.lGauss = fit.lGauss,fit.Weibul=fit.weibul,
+                      fit.dexp = fit.dexp,  fit.lGumbel = fit.lGumbel,
+                      fit.iGauss = fit.iGauss, posterior.probs = model_weights) )
 }
 
 ##############################################################
@@ -361,13 +358,6 @@ est.MAsurv_functions <- function(MAfits,frange,alpha = 0.05){
   
   t <- seq(frange[1],frange[2],0.1)
   ###################################################################################
-  #exponentially modified normal
-  est.parms <- extract(MAfits$fit.expmNorm$fit$modelFit)
-  b <- est.parms$b
-  l <- est.parms$l
-  nu <- est.parms$nu
-  reff <- rnorm(length(est.parms$lsig_sq),0,est.parms$lsig_sq)
-  expmn.surv <- MAfits$posterior.probs[5]*do.call(rbind,vexpmn_surv(t,nu, l+reff, b,length(reff),length(t)))
   #double exponential  
 
   est.parms <- extract(MAfits$fit.dexp$fit$modelFit)
@@ -392,7 +382,7 @@ est.MAsurv_functions <- function(MAfits,frange,alpha = 0.05){
   b <- est.parms$b
   l <- est.parms$l
   reff <- rnorm(length(est.parms$lsig_sq),0,est.parms$lsig_sq)
-  lgum.surv <-  MAfits$posterior.probs[6]*do.call(rbind,vlgum_surv(t, l+reff, b,length(reff),length(t)))
+  lgum.surv <-  MAfits$posterior.probs[5]*do.call(rbind,vlgum_surv(t, l+reff, b,length(reff),length(t)))
   ## log-logistic
   est.parms <- extract(MAfits$fit.llogit$fit$modelFit)
   b <- est.parms$b
@@ -404,14 +394,14 @@ est.MAsurv_functions <- function(MAfits,frange,alpha = 0.05){
   b <- est.parms$b
   l <- est.parms$l
   reff <- rnorm(length(est.parms$lsig_sq),0,est.parms$lsig_sq)
-  igauss.surv <-  MAfits$posterior.probs[7]*do.call(rbind,vigauss_surv(t, l+reff, b,length(reff),length(t)))
+  igauss.surv <-  MAfits$posterior.probs[6]*do.call(rbind,vigauss_surv(t, l+reff, b,length(reff),length(t)))
   ################################################################
-  surv <- igauss.surv + llogistic.surv + lgum.surv + lnorm.surv + weib.surv + dexp.surv + expmn.surv
+  surv <- igauss.surv + llogistic.surv + lgum.surv + lnorm.surv + weib.surv + dexp.surv 
   
   
   ub <- splinefun(t,apply(surv,2,quantile,alpha,na.rm = T))
-  mean <- splinefun(t,apply(surv,2,mean,na.rm = T))
+  tempmean <- splinefun(t,apply(surv,2,mean,na.rm = T))
   lb <- splinefun(t,apply(surv,2,quantile,1-alpha,na.rm = T))
 
-  return(functions = list(mean=mean,ub=ub,lb=lb))
+  return(functions = list(mean=tempmean,ub=ub,lb=lb))
 }

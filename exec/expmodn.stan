@@ -76,3 +76,19 @@ model {
                target +=  log_expmn_interval_censor(t[i,1],t[i,2],nu,l+l_reff[ID[i]], b);
      } 
 } 
+
+
+generated quantities{
+  vector[N] log_lik; 
+  
+   for(i in 1:N) { 
+         if (CENC[i] == 0) 
+               log_lik[i] =   log_expmn_right_censor(t[i,1],nu, l+l_reff[ID[i]], b ); 
+         if (CENC[i] == 1) 
+               log_lik[i] =   log_expmn_exact_lifetime(t[i,1],nu,l+l_reff[ID[i]], b); 
+         if (CENC[i] == 2) 
+               log_lik[i] =   log_expmn_left_censor(t[i,1],nu,l+l_reff[ID[i]], b); 
+         if (CENC[i] == 3) 
+               log_lik[i] =  log_expmn_interval_censor(t[i,1],t[i,2],nu,l+l_reff[ID[i]], b);
+     } 
+}
